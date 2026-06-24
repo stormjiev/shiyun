@@ -1,0 +1,50 @@
+[
+  {
+    "id": "chu_tang",
+    "name": "初唐",
+    "dynasty": "tang",
+    "color": "#5fa8ff"
+  },
+  {
+    "id": "sheng_tang",
+    "name": "盛唐",
+    "dynasty": "tang",
+    "color": "#ffd166"
+  },
+  {
+    "id": "zhong_tang",
+    "name": "中唐",
+    "dynasty": "tang",
+    "color": "#ff8c42"
+  },
+  {
+    "id": "wan_tang",
+    "name": "晚唐",
+    "dynasty": "tang",
+    "color": "#ef476f"
+  },
+  {
+    "id": "bei_song",
+    "name": "北宋",
+    "dynasty": "song",
+    "color": "#06d6a0"
+  },
+  {
+    "id": "nan_song",
+    "name": "南宋",
+    "dynasty": "song",
+    "color": "#48cae4"
+  },
+  {
+    "id": "tang",
+    "name": "唐",
+    "dynasty": "tang",
+    "color": "#9d7bff"
+  },
+  {
+    "id": "song",
+    "name": "宋",
+    "dynasty": "song",
+    "color": "#b8c0ff"
+  }
+]
