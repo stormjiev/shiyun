@@ -1078,7 +1078,7 @@ function createOfflineTts(Module, myConfig) {
     offlineTtsKittenModelConfig: offlineTtsKittenModelConfig,
     offlineTtsZipVoiceModelConfig: offlineTtsZipVoiceModelConfig,
     offlineTtsPocketModelConfig: offlineTtsPocketModelConfig,
-    numThreads: Math.max(1, Math.min(4, Math.floor((globalThis.navigator?.hardwareConcurrency || 4) / 2))),
+    numThreads: 1,
     debug: 0,
     provider: 'cpu',
   };
@@ -1090,7 +1090,11 @@ function createOfflineTts(Module, myConfig) {
     maxNumSentences: 1,
   }
 
-  if (myConfig) {
+  if (myConfig?.numThreads) {
+    // Keep the generated model configuration intact while allowing the
+    // application worker to select an appropriate WASM thread count.
+    offlineTtsModelConfig.numThreads = myConfig.numThreads;
+  } else if (myConfig) {
     offlineTtsConfig = myConfig;
   }
 

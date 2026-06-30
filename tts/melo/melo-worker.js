@@ -8,9 +8,14 @@ import {
 } from './model-manifest.js';
 
 const CACHE_PREFIX = 'shiyun-melo-';
-const CACHE_NAME = `${CACHE_PREFIX}${MODEL_VERSION}-q8-gzip-v2`;
+const CACHE_NAME = `${CACHE_PREFIX}${MODEL_VERSION}-fp32-stream-v1`;
 const DOWNLOAD_CONCURRENCY = 4;
 const DOWNLOAD_ATTEMPTS = 3;
+const PTHREAD_POOL_SIZE = 4;
+const numThreads = Math.max(
+  1,
+  Math.min(PTHREAD_POOL_SIZE, self.navigator?.hardwareConcurrency ?? 2),
+);
 const chunkProgress = MODEL_CHUNKS.map(() => 0);
 let lastProgressAt = 0;
 let lastPercent = -1;
@@ -150,11 +155,12 @@ try {
       status,
     }),
   });
-  tts = createOfflineTts(Module);
+  tts = createOfflineTts(Module, { numThreads });
   self.postMessage({
     type: 'melo-ready',
     modelType: getDefaultOfflineTtsModelType(),
     numSpeakers: tts.numSpeakers,
+    numThreads,
   });
 } catch (error) {
   self.postMessage({
@@ -164,16 +170,40 @@ try {
 }
 
 self.onmessage = (event) => {
-  const { type, requestId, text, sid, speed } = event.data;
+  const {
+    type, requestId, text, sid, speed, cancelBuffer,
+  } = event.data;
   if (type !== 'generate' || !tts) return;
   try {
-    const audio = tts.generate({ text, sid: sid ?? 0, speed: speed ?? 1 });
+    const cancelState = cancelBuffer ? new Int32Array(cancelBuffer) : null;
+    const startedAt = performance.now();
+    let chunkIndex = 0;
+    const audio = tts.generateWithConfig(text, {
+      sid: sid ?? 0,
+      speed: speed ?? 1,
+      callback: (samples, _length, progress) => {
+        if (cancelState && Atomics.load(cancelState, 0)) return 0;
+        self.postMessage({
+          type: 'melo-chunk',
+          requestId,
+          chunkIndex,
+          progress,
+          elapsedMs: performance.now() - startedAt,
+          samples,
+          sampleRate: tts.sampleRate,
+        }, [samples.buffer]);
+        chunkIndex += 1;
+        return 1;
+      },
+    });
     self.postMessage({
-      type: 'melo-result',
+      type: 'melo-complete',
       requestId,
-      samples: audio.samples,
-      sampleRate: tts.sampleRate,
-    }, [audio.samples.buffer]);
+      cancelled: Boolean(cancelState && Atomics.load(cancelState, 0)),
+      chunkCount: chunkIndex,
+      elapsedMs: performance.now() - startedAt,
+      totalSamples: audio.samples.length,
+    });
   } catch (error) {
     self.postMessage({
       type: 'melo-error',

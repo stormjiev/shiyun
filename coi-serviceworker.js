@@ -5,7 +5,8 @@ const addIsolationHeaders = (response, requestUrl) => {
   headers.set('Cross-Origin-Opener-Policy', 'same-origin');
   headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
   // 模型分片文件名含内容 hash，可安全长期缓存；模型升级会生成新 URL。
-  if (/\/tts\/melo\/model-[a-f0-9]{12}-\d+\.data\.bin$/.test(requestUrl.pathname)) {
+  if (response.status === 200
+    && /\/tts\/melo\/model-[a-f0-9]{12}-\d+\.data\.bin$/.test(requestUrl.pathname)) {
     headers.set('Cache-Control', 'public, max-age=31536000, immutable');
   }
   return new Response(response.body, {

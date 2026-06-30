@@ -1,6 +1,6 @@
-release=1.41
-app=0.41.0
-src=5691ee1
+release=1.43
+app=0.43.0
+src=79e2300
 branch=perf/render-dpr-cap
 worktree=dirty
-built=2026-06-29T09:21:56Z
+built=2026-06-30T08:19:39Z
